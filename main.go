@@ -1,13 +1,15 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"github.com/gocolly/colly"
+	"os"
 	"time"
 )
 
 func handleNDSSPaperUrl(url string) *[]string {
-	var res []string
+	res := []string{"NDSS"}
 	res = append(res, url)
 	ndss := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
@@ -25,13 +27,13 @@ func handleNDSSPaperUrl(url string) *[]string {
 	//	fmt.Println("Visited", r.Request.URL)
 	//})
 
-	ndss.OnHTML("h1.entry-title", func(e *colly.HTMLElement) { //回调函数，查找每篇文章的子链接
+	ndss.OnHTML("h1.entry-title", func(e *colly.HTMLElement) {
 		fmt.Println(e.Text)
 		var paper_title = e.Text
 		res = append(res, paper_title)
 	})
 
-	ndss.OnHTML("div.paper-data", func(e *colly.HTMLElement) { //回调函数，查找每篇文章的子链接
+	ndss.OnHTML("div.paper-data", func(e *colly.HTMLElement) {
 		e.ForEach("p", func(i int, element *colly.HTMLElement) {
 			switch i {
 			case 0:
@@ -45,8 +47,6 @@ func handleNDSSPaperUrl(url string) *[]string {
 	})
 
 	ndss.OnHTML("div.paper-buttons a[href]", func(e *colly.HTMLElement) { //回调函数，查找每篇文章的子链接
-		fmt.Println("find paper url")
-		fmt.Println(e.Attr("href"))
 		var paper_download_url = e.Attr("href")
 		res = append(res, paper_download_url)
 	})
@@ -63,7 +63,16 @@ func handleBig4(url, conf_name string) {
 
 func main() {
 	var NDSS_papers [][]string
+	file, err := os.Create("NDSSoutput.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
 
+	// 创建CSV写入器
+	writer := csv.NewWriter(file)
+	writer.Write([]string{"文章分类", "文章地址", "文章题目", "文章作者", "文章摘要", "文章下载链接"})
+	writer.Flush()
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
 	)
@@ -84,11 +93,17 @@ func main() {
 			NDSS_papers = append(NDSS_papers, *temp_paper_info)
 			time.Sleep(time.Second)
 		})
-
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		fmt.Println("Finished", r.Request.URL)
+		writer := csv.NewWriter(file)
+		for _, row := range NDSS_papers {
+			err := writer.Write(row)
+			if err != nil {
+				panic(err)
+			}
+		}
+		writer.Flush()
 	})
 
 	c.Visit("https://www.ndss-symposium.org/ndss2023/accepted-papers/")
