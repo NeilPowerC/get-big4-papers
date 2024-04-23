@@ -9,7 +9,7 @@ import (
 )
 
 func handleNDSSPaperUrl(url string) *[]string {
-	res := []string{"NDSS"}
+	res := []string{"NDSS2023"}
 	res = append(res, url)
 	ndss := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
@@ -71,7 +71,7 @@ func main() {
 
 	// 创建CSV写入器
 	writer := csv.NewWriter(file)
-	writer.Write([]string{"文章分类", "文章地址", "文章题目", "文章作者", "文章摘要", "文章下载链接"})
+	writer.Write([]string{"文章分类", "文章地址", "文章题目", "文章作者", "文章摘要", "文章下载链接", "PPT下载链接"})
 	writer.Flush()
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
