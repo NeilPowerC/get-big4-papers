@@ -6,8 +6,9 @@ import (
 	"time"
 )
 
-func handleNDSSAcceptedPapersUrl(url string) *[][]string {
+func HandleNDSSAcceptedPapersUrl(url string) *[][]string {
 	var NDSS_papers [][]string
+
 	//file, err := os.Create("NDSSoutput.csv")
 	//if err != nil {
 	//	panic(err)
@@ -18,23 +19,24 @@ func handleNDSSAcceptedPapersUrl(url string) *[][]string {
 	//writer := csv.NewWriter(file)
 	//writer.Write([]string{"文章分类", "文章地址", "文章题目", "文章作者", "文章摘要", "文章下载链接", "PPT下载链接"})
 	//writer.Flush()
-	c := colly.NewCollector(
+
+	ndss := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
 	)
 
-	c.OnRequest(func(r *colly.Request) {
+	ndss.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)
 	})
 
-	c.OnError(func(_ *colly.Response, err error) {
+	ndss.OnError(func(_ *colly.Response, err error) {
 		fmt.Println("Something went wrong:", err)
 	})
 
-	c.OnHTML("div.paper-list", func(e *colly.HTMLElement) { //回调函数，查找每篇文章的子链接
+	ndss.OnHTML("div.paper-list", func(e *colly.HTMLElement) { //回调函数，查找每篇文章的子链接
 		e.ForEach("div.tag-box", func(i int, element *colly.HTMLElement) {
 			//遍历每个article标签
 			article_url := element.ChildAttr("a", "href")
-			temp_paper_info := handleNDSSPaperUrl(article_url)
+			temp_paper_info := HandleNDSSPaperUrl(article_url)
 			NDSS_papers = append(NDSS_papers, *temp_paper_info)
 			time.Sleep(time.Second)
 		})
@@ -51,11 +53,11 @@ func handleNDSSAcceptedPapersUrl(url string) *[][]string {
 	//	writer.Flush()
 	//})
 
-	c.Visit("https://www.ndss-symposium.org/ndss2023/accepted-papers/")
+	ndss.Visit(url)
 	return &NDSS_papers
 }
 
-func handleNDSSPaperUrl(url string) *[]string {
+func HandleNDSSPaperUrl(url string) *[]string {
 	res := []string{"NDSS2023"}
 	res = append(res, url)
 	ndss := colly.NewCollector(
@@ -94,7 +96,7 @@ func handleNDSSPaperUrl(url string) *[]string {
 	return &res
 }
 
-func handleNDSSProgramUrl(url string) *[]string {
+func HandleNDSSProgramUrl(url string) *[]string {
 	res := []string{"NDSS2023"}
 	res = append(res, url)
 	ndss := colly.NewCollector(
