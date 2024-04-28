@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gocolly/colly"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -110,13 +111,21 @@ func HandleNDSSProgramUrl(url string) *[]string {
 
 	ndss.OnHTML("a.list-group-item.list-group-item-warning.card-subheading-session div.col-5", func(e *colly.HTMLElement) {
 		var ori_tag = e.ChildText("strong")
-		fmt.Println(ori_tag)
+		//fmt.Println(ori_tag)
 		pattern := `:\s(.*)$`
 		re := regexp.MustCompile(pattern)
 		match := re.FindStringSubmatch(ori_tag)
-
+		var grouping = false
 		if len(match) > 1 {
 			tag := match[1]
+			tag_arr := strings.Split(tag, " ")
+			switch tag_arr[len(tag_arr)-1] {
+			case "I", "II", "III", "IV", "V":
+				grouping = true
+			}
+			if grouping {
+				tag = strings.Join(tag_arr[0:len(tag_arr)-1], " ")
+			}
 			fmt.Println(tag)
 		} else {
 			fmt.Println("未找到匹配的内容")
