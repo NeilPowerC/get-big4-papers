@@ -3,6 +3,7 @@ package crawlers
 import (
 	"fmt"
 	"github.com/gocolly/colly"
+	"regexp"
 	"time"
 )
 
@@ -107,28 +108,28 @@ func HandleNDSSProgramUrl(url string) *[]string {
 		fmt.Println("Visiting", r.URL)
 	})
 
-	ndss.OnHTML("h1.entry-title", func(e *colly.HTMLElement) {
-		fmt.Println(e.Text)
-		var paper_title = e.Text
-		res = append(res, paper_title)
+	ndss.OnHTML("a.list-group-item.list-group-item-warning.card-subheading-session div.col-5", func(e *colly.HTMLElement) {
+		var ori_tag = e.ChildText("strong")
+		fmt.Println(ori_tag)
+		pattern := `:\s(.*)$`
+		re := regexp.MustCompile(pattern)
+		match := re.FindStringSubmatch(ori_tag)
+
+		if len(match) > 1 {
+			tag := match[1]
+			fmt.Println(tag)
+		} else {
+			fmt.Println("未找到匹配的内容")
+		}
 	})
 
-	ndss.OnHTML("div.paper-data", func(e *colly.HTMLElement) {
-		e.ForEach("p", func(i int, element *colly.HTMLElement) {
-			switch i {
-			case 0:
-				var authors = element.ChildText("strong")
-				res = append(res, authors)
-			case 2:
-				var abstruct = element.Text
-				res = append(res, abstruct)
-			}
+	ndss.OnHTML("ul.list-group.list-group-session.card-collapse.collapse.show", func(e *colly.HTMLElement) {
+		e.ForEach("div.col-10", func(i int, element *colly.HTMLElement) {
+			var title = element.ChildText("a")
+			fmt.Println("题目", title)
+			var paper_url = element.ChildAttr("a", "href")
+			fmt.Println("文章链接", paper_url)
 		})
-	})
-
-	ndss.OnHTML("div.paper-buttons a[href]", func(e *colly.HTMLElement) { //回调函数，查找每篇文章的子链接
-		var paper_download_url = e.Attr("href")
-		res = append(res, paper_download_url)
 	})
 
 	ndss.Visit(url)
