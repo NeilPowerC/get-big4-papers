@@ -99,8 +99,7 @@ func HandleNDSSPaperUrl(url string) *[]string {
 }
 
 func HandleNDSSProgramUrl(url string) *[]string {
-	res := []string{"NDSS2023"}
-	res = append(res, url)
+	var res []string
 	ndss := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
 	)
